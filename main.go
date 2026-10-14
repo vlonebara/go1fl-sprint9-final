@@ -17,8 +17,8 @@ const (
 func generateRandomElements(size int) []int {
 	var elements []int
 
-	if size < 2 {
-		log.Println("Размер слайса для генерации случайных чисел не может быть меньше 2")
+	if size == 0 {
+		log.Println("Слайс не может быть пустым")
 		return nil
 	}
 
@@ -32,7 +32,7 @@ func generateRandomElements(size int) []int {
 
 // maximum returns the maximum number of elements.
 func maximum(data []int) int {
-	var maxInt int
+	maxInt := data[0]
 
 	if len(data) < 2 {
 		log.Println("Размер слайса для получения элемента с максимальным значением не может быть меньше 2")
@@ -55,8 +55,8 @@ func maxChunks(data []int) int {
 	maxInts := make([]int, CHUNKS)
 	var wg sync.WaitGroup
 
-	if dataSize < 2 {
-		log.Println("Размер слайса для получения элемента с максимальным значением не может быть меньше 2")
+	if dataSize == 0 {
+		log.Println("Слайс не может быть пустым")
 		return 0
 	}
 
@@ -93,19 +93,19 @@ func main() {
 	timeStart := time.Now()
 	data := generateRandomElements(SIZE)
 	elapsed := time.Since(timeStart)
-	fmt.Printf("Время генерации: %d ms\n", elapsed)
+	fmt.Printf("Время генерации: %d ms\n", elapsed.Milliseconds())
 
 	//finding max value with 1 thread
 	fmt.Println("Ищем максимальное значение в один поток")
 	timeStart = time.Now()
 	max := maximum(data)
 	elapsed = time.Since(timeStart)
-	fmt.Printf("Максимальное значение элемента: %d\nВремя поиска: %d ms\n", max, elapsed)
+	fmt.Printf("Максимальное значение элемента: %d\nВремя поиска: %d ms\n", max, elapsed.Milliseconds())
 
 	//finding max value with 8 threads
 	fmt.Printf("Ищем максимальное значение в %d потоков\n", CHUNKS)
 	timeStart = time.Now()
 	max = maxChunks(data)
 	elapsed = time.Since(timeStart)
-	fmt.Printf("Максимальное значение элемента: %d\nВремя поиска: %d ms\n", max, elapsed)
+	fmt.Printf("Максимальное значение элемента: %d\nВремя поиска: %d ms\n", max, elapsed.Milliseconds())
 }
