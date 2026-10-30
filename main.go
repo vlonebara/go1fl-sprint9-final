@@ -15,16 +15,14 @@ const (
 
 // generateRandomElements generates random elements.
 func generateRandomElements(size int) []int {
-	var elements []int
-
-	if size == 0 {
+	if size <= 0 {
 		log.Println("Слайс не может быть пустым")
 		return nil
 	}
 
-	for i := 0; i < size; i++ {
-		randInt := rand.Intn(1000)
-		elements = append(elements, randInt)
+	elements := make([]int, size)
+	for i := range elements {
+		elements[i] = rand.Int()
 	}
 
 	return elements
@@ -32,13 +30,12 @@ func generateRandomElements(size int) []int {
 
 // maximum returns the maximum number of elements.
 func maximum(data []int) int {
-	maxInt := data[0]
-
-	if len(data) < 2 {
-		log.Println("Размер слайса для получения элемента с максимальным значением не может быть меньше 2")
+	if len(data) == 0 {
+		log.Println("Слайс не может быть пустым")
 		return 0
 	}
 
+	maxInt := data[0]
 	for _, num := range data {
 		if num > maxInt {
 			maxInt = num
@@ -46,45 +43,45 @@ func maximum(data []int) int {
 	}
 
 	return maxInt
-
 }
 
 // maxChunks returns the maximum number of elements in a chunks.
 func maxChunks(data []int) int {
 	dataSize := len(data)
-	maxInts := make([]int, CHUNKS)
-	var wg sync.WaitGroup
-
 	if dataSize == 0 {
 		log.Println("Слайс не может быть пустым")
 		return 0
 	}
 
-	for i := 0; i < CHUNKS; i++ {
-		start := i * dataSize / CHUNKS
-		end := (i + 1) * dataSize / CHUNKS
+	chunks := CHUNKS
+	if dataSize < chunks {
+		chunks = dataSize
+	}
 
+	maxInts := make([]int, chunks)
+	chunkSize := dataSize / chunks
+	remainingElements := dataSize % chunks
+	var wg sync.WaitGroup
+	start := 0
+
+	for i := 0; i < chunks; i++ {
+		end := start + chunkSize
+		if i < remainingElements {
+			end++
+		}
 		chunk := data[start:end]
+		start = end
 
 		wg.Add(1)
 		go func(i int, chunk []int) {
 			defer wg.Done()
-
-			max := chunk[0]
-			for _, n := range chunk {
-				if n > max {
-					max = n
-				}
-			}
-
-			maxInts[i] = max
+			maxInts[i] = maximum(chunk)
 		}(i, chunk)
 	}
 
 	wg.Wait()
 
 	return maximum(maxInts)
-
 }
 
 func main() {

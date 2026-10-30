@@ -2,7 +2,10 @@ package main
 
 import (
 	"math/rand"
+	"strconv"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestGenerateRandomElements(t *testing.T) {
@@ -22,20 +25,13 @@ func TestGenerateRandomElements(t *testing.T) {
 			got := generateRandomElements(tt.size)
 
 			if tt.wantNil {
-				if got != nil {
-					t.Fatalf("expected nil, got %v", got)
-				}
+				assert.Nil(t, got)
 				return
 			}
 
-			if len(got) != tt.size {
-				t.Fatalf("expected length %d, got %d", tt.size, len(got))
-			}
-
+			assert.Len(t, got, tt.size)
 			for i, n := range got {
-				if n < 0 || n >= 1000 {
-					t.Errorf("element %d out of range: %d", i, n)
-				}
+				assert.GreaterOrEqual(t, n, 0, "element %d is negative", i)
 			}
 		})
 	}
@@ -78,9 +74,9 @@ func TestMaximum(t *testing.T) {
 			want: 5,
 		},
 		{
-			name: "single element current behavior",
+			name: "single element",
 			data: []int{42},
-			want: 0,
+			want: 42,
 		},
 	}
 
@@ -88,15 +84,12 @@ func TestMaximum(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got := maximum(tt.data)
 
-			if got != tt.want {
-				t.Errorf("maximum(%v) = %d, want %d",
-					tt.data, got, tt.want)
-			}
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }
 
-func TestMaximumEmptyInputPanics(t *testing.T) {
+func TestMaximumEmptyInput(t *testing.T) {
 	tests := []struct {
 		name string
 		data []int
@@ -107,13 +100,7 @@ func TestMaximumEmptyInputPanics(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			defer func() {
-				if recover() == nil {
-					t.Fatal("expected panic for empty input")
-				}
-			}()
-
-			maximum(tt.data)
+			assert.Zero(t, maximum(tt.data))
 		})
 	}
 }
@@ -154,37 +141,33 @@ func TestMaxChunks(t *testing.T) {
 			data: []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11},
 			want: 11,
 		},
+		{
+			name: "fewer elements than chunks",
+			data: []int{5, 9, 7},
+			want: 9,
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := maxChunks(tt.data)
 
-			if got != tt.want {
-				t.Errorf("maxChunks(%v) = %d, want %d",
-					tt.data, got, tt.want)
-			}
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }
 
 func TestMaxChunksEmptyInput(t *testing.T) {
-	got := maxChunks(nil)
-
-	if got != 0 {
-		t.Errorf("maxChunks(nil) = %d, want 0", got)
-	}
+	assert.Zero(t, maxChunks(nil))
 }
 
 func TestMaxChunksMatchesMaximum(t *testing.T) {
 	rng := rand.New(rand.NewSource(42))
 
-	// Test only sizes that produce non-empty chunks
-	// with the current implementation.
-	sizes := []int{8, 9, 16, 31, 100, 1001}
+	sizes := []int{1, 3, 7, 8, 9, 16, 31, 100, 1001}
 
 	for _, size := range sizes {
-		t.Run("size_"+itoa(size), func(t *testing.T) {
+		t.Run("size_"+strconv.Itoa(size), func(t *testing.T) {
 			data := make([]int, size)
 
 			for i := range data {
@@ -194,29 +177,7 @@ func TestMaxChunksMatchesMaximum(t *testing.T) {
 			want := maximum(data)
 			got := maxChunks(data)
 
-			if got != want {
-				t.Errorf("size %d: maxChunks = %d, maximum = %d",
-					size, got, want)
-			}
+			assert.Equal(t, want, got, "size %d", size)
 		})
 	}
-}
-
-func itoa(n int) string {
-	const digits = "0123456789"
-
-	if n == 0 {
-		return "0"
-	}
-
-	var buf [20]byte
-	i := len(buf)
-
-	for n > 0 {
-		i--
-		buf[i] = digits[n%10]
-		n /= 10
-	}
-
-	return string(buf[i:])
 }
